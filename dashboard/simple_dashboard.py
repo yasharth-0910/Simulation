@@ -16,20 +16,6 @@ from techniques.srps import SRPSTechnique
 from techniques.sddc import SDDCTechnique
 from techniques.lps import LPSTechnique
 
-# Import 3D visualization functions directly
-try:
-    from .visualization_3d import create_3d_dashboard_section
-except ImportError:
-    # Fallback: import from same directory
-    import importlib.util
-    spec = importlib.util.spec_from_file_location(
-        "visualization_3d", 
-        os.path.join(os.path.dirname(__file__), "visualization_3d.py")
-    )
-    visualization_3d = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(visualization_3d)
-    create_3d_dashboard_section = visualization_3d.create_3d_dashboard_section
-
 def create_documentation_section():
     """Create comprehensive documentation section"""
     st.subheader("📚 Documentation & Concepts")
@@ -161,12 +147,50 @@ def create_documentation_section():
         - **Delta**: How much to add/subtract from the cell
         - **Apply Update**: See how the change affects query results
         
-        **3D Visualization:**
-        - **3D Cube View**: Interactive 3D plot of the data cube
-        - **Query Highlight**: See which cells are included in your query
-        - **Technique Comparison**: Compare different techniques side-by-side
-        - **Cost Analysis**: 3D visualization of performance trade-offs
+        **Performance Analysis:**
+        - **Cost Trade-offs**: Compare different techniques
+        - **Benchmarks**: Measure actual performance
+        - **Scaling**: See how performance changes with cube size
         """)
+
+def create_simple_3d_section():
+    """Create a simple 3D visualization section"""
+    st.subheader("3D Visualization")
+    
+    # Create sample cube
+    cube_size = st.slider("Cube Size for 3D Visualization", 5, 15, 8)
+    cube = np.random.rand(cube_size, cube_size, cube_size)
+    
+    # Show cube statistics
+    st.write("**Cube Statistics:**")
+    st.write(f"- Shape: {cube.shape}")
+    st.write(f"- Total cells: {cube.size}")
+    st.write(f"- Sum of all values: {np.sum(cube):.4f}")
+    st.write(f"- Average value: {np.mean(cube):.4f}")
+    st.write(f"- Min value: {np.min(cube):.4f}")
+    st.write(f"- Max value: {np.max(cube):.4f}")
+    
+    # Show 2D slices
+    st.write("**2D Slices (for visualization):**")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        slice_idx = st.slider("Slice Index (Dim 1)", 0, cube_size-1, cube_size//2)
+        slice_data = cube[slice_idx, :, :]
+        fig = px.imshow(slice_data, title=f"Slice at Dim1={slice_idx}")
+        st.plotly_chart(fig)
+    
+    with col2:
+        slice_idx = st.slider("Slice Index (Dim 2)", 0, cube_size-1, cube_size//2)
+        slice_data = cube[:, slice_idx, :]
+        fig = px.imshow(slice_data, title=f"Slice at Dim2={slice_idx}")
+        st.plotly_chart(fig)
+    
+    with col3:
+        slice_idx = st.slider("Slice Index (Dim 3)", 0, cube_size-1, cube_size//2)
+        slice_data = cube[:, :, slice_idx]
+        fig = px.imshow(slice_data, title=f"Slice at Dim3={slice_idx}")
+        st.plotly_chart(fig)
 
 def create_interactive_dashboard():
     st.title("Iterative Data Cubes Simulation Dashboard")
@@ -274,12 +298,8 @@ def create_interactive_dashboard():
                 st.metric("Theoretical Query Cost", query_cost)
                 st.metric("Theoretical Update Cost", update_cost)
     
-    # 3D Visualization section
-    try:
-        create_3d_dashboard_section()
-    except Exception as e:
-        st.error(f"3D Visualization not available: {e}")
-        st.info("3D features require plotly. Please install: pip install plotly")
+    # Simple 3D Visualization section
+    create_simple_3d_section()
     
     # Real-time simulation
     st.subheader("Live Simulation")
@@ -340,4 +360,4 @@ def main():
     create_interactive_dashboard()
 
 if __name__ == "__main__":
-    main()
+    main() 
